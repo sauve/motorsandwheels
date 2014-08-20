@@ -35,6 +35,22 @@ MotorDriver::MotorDriver( int enablepin )
 void Motor::SetSpeed(int val, boolean forward)
 {}
 
+
+
+// --------- Encoder -----------
+Encoder::Encoder()
+{
+QuadAPin = 0;
+QuadBPin = 0;
+}
+
+Encoder::Encoder( int apin, int bpin )
+{
+QuadAPin = apin;
+QuadBPin = bpin;
+}
+
+
 // --------- Wheel -----------
 Wheel::Wheel()
 {
@@ -86,9 +102,11 @@ void MotorsAndWheels::CreateDriver( int enablePin)
   nbrDrivers++;
 }
 
-void MotorsAndWheels::CreateEncoder()
+void MotorsAndWheels::CreateEncoder( int pinA, int pinB )
 {
-
+  Encoder* encoder = new Encoder(pinA, pinB);
+  _encoders[nbrEncoder] = encoder;
+  nbrEncoder++;
 }
 
 void MotorsAndWheels::CreateMotor(int pwmpin,int forwardpin,int barckwardpin)

@@ -17,8 +17,17 @@ void SetupMiniSamsung()
 MandWs.CreateDriver( 3 );
 MandWs.CreateMotor( 5, 7, 8 );
 MandWs.CreateMotor( 6, 9, 10 );
-MandWs.CreateWheel( 1, null, Wheels.getMotor(0) );
-MandWs.CreateWheel( 1, null, Wheels.getMotor(1) );
+MandWs.CreateWheel( 1, 0, MandWs.getMotor(0) );
+MandWs.CreateWheel( 1, 0, MandWs.getMotor(1) );
+}
+
+void SetupBetty()
+{
+MandWs.CreateDriver( A4 );
+MandWs.CreateMotor( 5, 7, 8 );
+MandWs.CreateEncoder( 2, 3);
+MandWs.CreateWheel( 1, MandWs.getEncoder(0), MandWs.getMotor(0) );
+
 }
 
 void SetupTiRobot()
@@ -56,5 +65,5 @@ void setup()
 void loop()
 {
   // devrait etre appeler au minimum au 1/10 de secondes
-  Wheels.ProcessWheels();
+  MandWs.ProcessWheels();
 }

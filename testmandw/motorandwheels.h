@@ -13,7 +13,8 @@ class EncoderChange
 class Encoder
 {
  public:
-  
+  Encoder();
+  Encoder( int apin, int bpin );
 protected:
   int QuadAPin;
   int QuadBPin;
@@ -73,7 +74,7 @@ public:
   void ProcessWheels();
   
   void CreateDriver( int enablePin);
-  void CreateEncoder();
+  void CreateEncoder( int pinA, int pinB );
   void CreateMotor(int pwmpin,int forwardpin,int barckwardpin);
   void CreateWheel( int ratio, Encoder* encoder, Motor* motor );
   
