@@ -26,6 +26,7 @@ protected:
 
 class Motor
 {
+  void SetSpeed(int val, boolean forward);
 protected:
   int PWMPin;
   int ForwardPin;
@@ -40,7 +41,8 @@ protected:
 class Wheel
 {
   int getRPM();
-  int 
+ 
+ // methode utilitaire
 protected:
   int GearRatio;
   int minRPM;
@@ -55,8 +57,19 @@ class MotorsAndWheels
 {
 // liste de motor, motordriver et encoder
 // creation et gestion des wheels
+public:
+  MotorsAndWheels();
 
   void ProcessWheels();
+  
+  void CreateMotor();
+  void CreateEncoder();
+  void CreateMotor();
+  
+  Encoder* Encoder( int idx );
+  MotorDriver* Driver( int idx );
+  Motor* Motor( int idx );
+  Wheel* Wheel( int idx );
 }
 
 #endif //_MOTORANDWHEELS_H_
