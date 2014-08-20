@@ -1,12 +1,14 @@
 #ifndef _MOTORANDWHEELS_H_
 #define _MOTORANDWHEELS_H_
 
+#include <Arduino.h>
 class EncoderChange
 {
+ public:
   unsigned long timeoschange;
   int EncoderPin;
   int EncoderValue;
-}
+};
 
 class Encoder
 {
@@ -15,17 +17,21 @@ class Encoder
 protected:
   int QuadAPin;
   int QuadBPin;
-}
+};
 
 
 class MotorDriver
 {
+ public:
+  MotorDriver();
+  MotorDriver( int enablepin );
 protected:
   int EnabledPin;
-}
+};
 
 class Motor
 {
+ public:
   void SetSpeed(int val, boolean forward);
 protected:
   int PWMPin;
@@ -36,10 +42,14 @@ protected:
   
   int StallSpeed;
   int MaxSpeed;
-}
+};
 
 class Wheel
 {
+ public:
+ Wheel();
+ Wheel( int ratio, Encoder* encoder, Motor* motor);
+ 
   int getRPM();
  
  // methode utilitaire
@@ -49,9 +59,9 @@ protected:
   int MaxRPM;
   // Encoder
   // Motor
-  Encode *encoder;
-  Motor *motor;
-}
+  Encoder* _encoder;
+  Motor* _motor;
+};
 
 class MotorsAndWheels
 {
@@ -62,14 +72,24 @@ public:
 
   void ProcessWheels();
   
-  void CreateMotor();
+  void CreateDriver( int enablePin);
   void CreateEncoder();
-  void CreateMotor();
+  void CreateMotor(int pwmpin,int forwardpin,int barckwardpin);
+  void CreateWheel( int ratio, Encoder* encoder, Motor* motor );
   
-  Encoder* Encoder( int idx );
-  MotorDriver* Driver( int idx );
-  Motor* Motor( int idx );
-  Wheel* Wheel( int idx );
-}
+  Encoder* getEncoder( int idx );
+  MotorDriver* getDriver( int idx );
+  Motor* getMotor( int idx );
+  Wheel* getWheel( int idx );
+protected:
+  int nbrMotors;
+  int nbrDrivers;
+  int nbrWheels;
+  int nbrEncoder;
+  MotorDriver** _drivers;
+  Motor** _motors;
+  Wheel** _wheels;
+  Encoder** _encoders;
+};
 
 #endif //_MOTORANDWHEELS_H_
