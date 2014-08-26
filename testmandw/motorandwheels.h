@@ -26,6 +26,8 @@ class MotorDriver
  public:
   MotorDriver();
   MotorDriver( int enablepin );
+  
+  void Enable( boolean enabled );
 protected:
   int EnabledPin;
 };
@@ -33,13 +35,21 @@ protected:
 class Motor
 {
  public:
+   Motor();
+   Motor( int pwm, int forward);
+   Motor( int pwm, int forward, int reverse );
+   
+  void Stop();
   void SetSpeed(int val, boolean forward);
+  void SetSpeed(int val);
+  void SetDriver( MotorDriver* driver );
 protected:
   int PWMPin;
   int ForwardPin;
   int BackwardPin;
   boolean SinglePinDirection;
   boolean PWMSpeed;
+  MotorDriver* motorDriver;
   
   int StallSpeed;
   int MaxSpeed;
@@ -76,6 +86,7 @@ public:
   void CreateDriver( int enablePin);
   void CreateEncoder( int pinA, int pinB );
   void CreateMotor(int pwmpin,int forwardpin,int barckwardpin);
+  void CreateMotor(int pwmpin,int forwardpin);
   void CreateWheel( int ratio, Encoder* encoder, Motor* motor );
   
   Encoder* getEncoder( int idx );
