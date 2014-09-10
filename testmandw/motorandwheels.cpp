@@ -133,15 +133,23 @@ void Motor::SetDriver( MotorDriver* driver )
 // --------- Encoder -----------
 Encoder::Encoder()
 {
-QuadAPin = 0;
+APin = 0;
 QuadBPin = 0;
 }
 
+Encoder::Encoder( int apin )
+{
+APin = apin;
+QuadBPin = 0;
+}
+
+
 Encoder::Encoder( int apin, int bpin )
 {
-QuadAPin = apin;
+APin = apin;
 QuadBPin = bpin;
 }
+
 
 
 // --------- Wheel -----------
