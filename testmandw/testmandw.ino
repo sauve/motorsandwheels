@@ -49,8 +49,21 @@ void SetupBetty()
 MandWs.CreateDriver( A4 );
 MandWs.CreateMotor( 5, 7, 8 );
 MandWs.getMotor(0)->SetDriver(MandWs.getDriver(0));
-MandWs.CreateEncoder( 2, 3);
+MandWs.CreateEncoder(2, 3);
 MandWs.CreateWheel( 1, MandWs.getEncoder(0), MandWs.getMotor(0) );
+}
+
+
+// Basée sur un contrôleur Pololu toshiba et des encodeur non quadature
+void setupDualEncoderDualMotor()
+{
+  Wheels.CreateDriver( 3 );
+  Wheels.CreateMotor( 5, 7, 8 );
+  Wheels.CreateMotor( 6, 9, 10 );
+  Wheels.CreateEncoder( 12 );
+  Wheels.CreateEncoder( 13 );
+  Wheels.CreateWheel( 1, Wheels.Encoder(0), Wheels.Motor(0) );
+  Wheels.CreateWheel( 1, Wheels.Encoder(1), Wheels.Motor(1) );
 }
 
 void SetupTiRobot()
@@ -64,10 +77,10 @@ Wheels.CreateMotor( 5, 7, 8 );
 Wheels.CreateMotor( 5, 7, 8 );
 Wheels.CreateMotor( 5, 7, 8 );
 
-Wheels.CreateEncoder( 12, 13 );
-Wheels.CreateEncoder( 14, 15 );
-Wheels.CreateEncoder( 16, 17 );
-Wheels.CreateEncoder( 18, 19 );
+Wheels.CreateEncoder( 12 );
+Wheels.CreateEncoder( 13 );
+Wheels.CreateEncoder( 14 );
+Wheels.CreateEncoder( 15 );
 
 Wheels.CreateWheel( 1, Wheels.Encoder(0), Wheels.Motor(0) );
 Wheels.CreateWheel( 1, Wheels.Encoder(1), Wheels.Motor(1) );
