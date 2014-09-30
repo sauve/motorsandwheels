@@ -2,6 +2,12 @@
 #include "motorandwheels.h"
 // interrup functions
 
+// -------- Encoder static Data -------------
+
+// implémentation naive pour le moment
+EncoderChange encChanges[16];
+
+
 void ChangeEncoder1()
 {}
 
