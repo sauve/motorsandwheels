@@ -24,7 +24,7 @@ RGBLED::RGBLED( int rpin, int gpin, int bpin, boolean commonanode, int scaleR, i
   mCommonAnode = commonanode;
 }
 
-void ScaleFactor( int scaleR, int scaleG, int scaleB )
+void RGBLED::ScaleFactor( int scaleR, int scaleG, int scaleB )
 {
   mScaleR = scaleR;
   mScaleG = scaleG;
@@ -46,7 +46,7 @@ void RGBLED::Color( int r, int g, int b )
   analogWrite(mBPin, b);
 }
 
-void Color( byte* values )
+void RGBLED::Color( byte values[] )
 {
-  Color( values[0], values[1], values[2] );
+  Color( (int)(values[0]), (int)(values[1]), (int)(values[2]) );
 }

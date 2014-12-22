@@ -46,8 +46,8 @@ MandWs.CreateWheel( 1, 0, MandWs.getMotor(1) );
 
 void SetupBetty()
 {
-MandWs.CreateDriver( A4 );
-MandWs.CreateMotor( 5, 7, 8 );
+MandWs.CreateDriver( 5 );
+MandWs.CreateMotor( 6, 7, 8 );
 MandWs.getMotor(0)->SetDriver(MandWs.getDriver(0));
 MandWs.CreateEncoder(2, 3);
 MandWs.CreateWheel( 1, MandWs.getEncoder(0), MandWs.getMotor(0) );
@@ -57,13 +57,13 @@ MandWs.CreateWheel( 1, MandWs.getEncoder(0), MandWs.getMotor(0) );
 // Basée sur un contrôleur Pololu toshiba et des encodeur non quadature
 void setupDualEncoderDualMotor()
 {
-  Wheels.CreateDriver( 3 );
-  Wheels.CreateMotor( 5, 7, 8 );
-  Wheels.CreateMotor( 6, 9, 10 );
-  Wheels.CreateEncoder( 12 );
-  Wheels.CreateEncoder( 13 );
-  Wheels.CreateWheel( 1, Wheels.Encoder(0), Wheels.Motor(0) );
-  Wheels.CreateWheel( 1, Wheels.Encoder(1), Wheels.Motor(1) );
+  MandWs.CreateDriver( 3 );
+  MandWs.CreateMotor( 5, 7, 8 );
+  MandWs.CreateMotor( 6, 9, 10 );
+  //MandWs.CreateEncoder( 12 );
+  //MandWs.CreateEncoder( 13 );
+  //MandWs.CreateWheel( 1, Wheels.Encoder(0), Wheels.Motor(0) );
+  //MandWs.CreateWheel( 1, Wheels.Encoder(1), Wheels.Motor(1) );
 }
 
 void SetupTiRobot()
@@ -115,7 +115,7 @@ if ( mBSpeed == -255 || mBSpeed == 255 )
   mBIncrement = -mBIncrement;
 
 MandWs.getMotor(0)->SetSpeed(mASpeed);
-MandWs.getMotor(1)->SetSpeed(mBSpeed);
+//MandWs.getMotor(1)->SetSpeed(mBSpeed);
 }
 
 void loop()

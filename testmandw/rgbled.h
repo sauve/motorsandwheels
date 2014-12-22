@@ -11,7 +11,7 @@ public:
   
   void ScaleFactor( int scaleR, int scaleG, int scaleB );
   void Color( int r, int g, int b );
-  void Color( byte* values );
+  void Color( byte values[] );
 private:
   int mScaleR, mScaleG, mScaleB;
   int mRPin, mGPin, mBPin;
