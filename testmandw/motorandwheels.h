@@ -14,9 +14,12 @@ class Encoder
 {
  public:
   Encoder();
+  Encoder( int apin );
   Encoder( int apin, int bpin );
+  
+  int get
 protected:
-  int QuadAPin;
+  int APin;
   int QuadBPin;
 };
 
