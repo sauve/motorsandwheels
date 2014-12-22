@@ -2,17 +2,38 @@
 #include "motorandwheels.h"
 // interrup functions
 
+
+// garde pointeurs pour les structure pour encodeur
+EncoderChange** EncodeurChanges;
+
 void ChangeEncoder1()
-{}
+{
+  // verifie qu'il y a bien un vecteur de modification 
+  if (EncodeurChanges[0] == 0)
+    return;
+    
+}
 
 void ChangeEncoder2()
-{}
+{
+  // verifie qu'il y a bien un vecteur de modification 
+  if (EncodeurChanges[1] == 0)
+    return;
+}
 
 void ChangeEncoder3()
-{}
+{
+  // verifie qu'il y a bien un vecteur de modification 
+  if (EncodeurChanges[2] == 0)
+    return;
+}
 
 void ChangeEncoder4()
-{}
+{
+  // verifie qu'il y a bien un vecteur de modification 
+  if (EncodeurChanges[3] == 0)
+    return;
+}
 
 // -------- MotorDriver ---------
 MotorDriver::MotorDriver()
@@ -174,6 +195,11 @@ MotorsAndWheels::MotorsAndWheels()
   _wheels = new Wheel*[2];
   _encoders = new Encoder*[2];
   
+  // Initialise les tableaux de données d'encodeurs, peut etre devrait en faire un seul tableau puisque la taille et toujours de 4 ( moins de jump )?
+  EncodeurChanges = new EncoderChange*[2];
+  EncodeurChanges[0] = new EncoderChange[4];
+  EncodeurChanges[1] = new EncoderChange[4];
+  
   nbrMotors = 0;
   nbrDrivers = 0;
   nbrWheels = 0;
@@ -184,6 +210,11 @@ MotorsAndWheels::MotorsAndWheels()
 void MotorsAndWheels::ProcessWheels()
 {
   // pour chaque wheel, verifi si doit ajuster la vitesse
+  for( int i=0; i<nbrWheels; ++i)
+  {
+    if( _wheels[i]!= 0)
+    {}
+  }
 }
 
 
