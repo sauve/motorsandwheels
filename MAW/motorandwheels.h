@@ -63,7 +63,12 @@ class Wheel
  Wheel();
  Wheel( int ratio, Encoder* encoder, Motor* motor);
  
-  int getRPM();
+  float getRPM();
+  void setAcceleration( int max);
+  void setDeceleration( int max);
+  void setRPM( float rpm );
+  
+  
  
  // methode utilitaire
 protected:
@@ -85,11 +90,11 @@ public:
 
   void ProcessWheels();
   
-  void CreateDriver( int enablePin);
-  void CreateEncoder( int pinA, int pinB );
-  void CreateMotor(int pwmpin,int forwardpin,int barckwardpin);
-  void CreateMotor(int pwmpin,int forwardpin);
-  void CreateWheel( int ratio, Encoder* encoder, Motor* motor );
+  MotorDriver* CreateDriver( int enablePin);
+  Encoder* CreateEncoder( int pinA, int pinB );
+  Motor* CreateMotor(int pwmpin,int forwardpin,int barckwardpin);
+  Motor* CreateMotor(int pwmpin,int forwardpin);
+  Wheel* CreateWheel( int ratio, Encoder* encoder, Motor* motor );
   
   Encoder* getEncoder( int idx );
   MotorDriver* getDriver( int idx );

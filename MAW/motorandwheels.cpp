@@ -221,45 +221,52 @@ void MotorsAndWheels::ProcessWheels()
   for( int i=0; i<nbrWheels; ++i)
   {
     if( _wheels[i]!= 0)
-    {}
+    {
+      // process les encodeur 
+    }
   }
 }
 
 
 // Create a new motor driver with an enable pin and add it to the list
-void MotorsAndWheels::CreateDriver( int enablePin)
+MotorDriver* MotorsAndWheels::CreateDriver( int enablePin)
 {
   MotorDriver* driver = new MotorDriver(enablePin);
   _drivers[nbrDrivers] = driver;
   nbrDrivers++;
+  return driver;
 }
 
-void MotorsAndWheels::CreateEncoder( int pinA, int pinB )
+Encoder* MotorsAndWheels::CreateEncoder( int pinA, int pinB )
 {
   Encoder* encoder = new Encoder(pinA, pinB);
   _encoders[nbrEncoder] = encoder;
   nbrEncoder++;
+  return encoder;
 }
 
-void MotorsAndWheels::CreateMotor(int pwmpin,int forwardpin,int barckwardpin)
+Motor* MotorsAndWheels::CreateMotor(int pwmpin,int forwardpin,int barckwardpin)
 {
   Motor* motor = new Motor(pwmpin, forwardpin, barckwardpin);
   _motors[nbrMotors] = motor;
   nbrMotors++;
+  return motor;
 }
 
-void MotorsAndWheels::CreateMotor(int pwmpin,int forwardpin)
+Motor* MotorsAndWheels::CreateMotor(int pwmpin,int forwardpin)
 {
   Motor* motor = new Motor(pwmpin, forwardpin);
   _motors[nbrMotors] = motor;
   nbrMotors++;
+  return motor;
 }
 
-void MotorsAndWheels::CreateWheel(int ratio, Encoder* encoder, Motor* motor )
+Wheel* MotorsAndWheels::CreateWheel(int ratio, Encoder* encoder, Motor* motor )
 {
   Wheel* wheel = new Wheel(ratio, encoder, motor);
   _wheels[nbrWheels] = wheel;
   nbrWheels++;
+  return wheel;
 }
   
 Encoder* MotorsAndWheels::getEncoder( int idx )
