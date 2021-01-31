@@ -15,6 +15,7 @@ Permet le controle de moteur, d'encoder et de simuler le control de roue et le l
 + Limit switch
 + Batery Sensor
 + moteur
++ moteur driver
 + encodeur
 + roue / joint / axe
 + systeme de roues
@@ -28,12 +29,23 @@ Permet la lecture de la consommation de courant
 
 Permet la lecture de la temperature du moteur
 
-### Support pour moteur
+### Support pour moteur controleur
 
-+ support enable pin
 + Support direction pin
 + Support forward/backword pin
 + Suport stall / max value
+
+### Support pour moteur driver
+
++ support enable pin
++ liste de senseur et appel pour somme / moyenne
++ liste de motor ctrl
+
+### Support pour moteur
+
++ lien vers encodeur
++ lien vers les senseur associer, le driver et le controleur
++ gestion des ramp / accel, decel / torque et rpm
 
 ### Support pour encodeur
 

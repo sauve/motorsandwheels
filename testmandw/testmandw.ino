@@ -9,17 +9,28 @@ MotorsAndWheels MandWs;
 Encoder Enc1;
 Encoder Enc2;
 Encoder Enc3;
-MotorDriver motDriver;
-MotorControl mot1Ctrl;
+Encoder Enc4;
+MotorDriver motDriver1;
+MotorDriver motDriver2;
+MotorControl mot1Ctrl1;
+MotorControl mot1Ctrl2;
+MotorControl mot1Ctrl3;
+MotorControl mot1Ctrl4;
 Motor Mot1;
+Motor Mot2;
+Motor Mot3;
+Motor Mot4;
 Wheel Wheel1;
+Wheel Wheel2;
+Wheel Wheel3;
+Wheel Wheel4;
 
 // test avec https://www.pololu.com/product/1213
 PowerSensor mot1Power;
 PowerSensor mot2Power;
 
-
-
+Potentiometer inputpot1;
+Limit lim1;
 
 void SetupPololuTB6612FNG()
 {
@@ -120,13 +131,60 @@ void setupSimpleEncoderTest()
 }
 
 
+void setupUNOStructureTest()
+{
+  // Utilise PS2 2 axe + sel pour input et limit test 
+  // A0 = X axis
+  inputpot1.setup( A0 );
+   // limit A1
+   lim1.setup( A1 );
+
+  //Motor driver = Pololu Dual MC33926 Motor Driver Carrier
+  // 11 = Enable driver
+  motDriver1.setEnablePin( 11 );
+
+  // 7 = IN1
+  // 8 = IN2
+  mot1Ctrl1.setupDirectionPin( 7, 8 );
+  // 6 = Connections pwm mot 1
+  mot1Ctrl1.setupPWMPin( 6 );
+  // 5 = SF mot 1
+  mot1Ctrl1.ConfigErrorPin( 5 );
+  // A2 = FB mot 1 Power
+  mot1Power.setup( A2 );
+  
+  // Moteur Cytron SPG30-20K avec Quad encodeur
+  // 2 = ENC A 
+  // 4 = ENC B
+  Enc1.Setup(2, 4);
+
+
+  // register and link component to the driver
+  motDriver1.addPowerSensor(&mot1Power);
+  motDriver1.addMotorControler(&mot1Ctrl1);
+  
+  // motor interface
+  Mot1.SetDriver(&motDriver1);
+  Mot1.SetControler(&mot1Ctrl1);
+  Mot1.SetEncoder(&Enc1);
+  Mot1.SetPowerSensor(&mot1Power);
+
+  // register components to MansW interface
+  MandWs.registerMotorDriver(&motDriver1);
+  MandWs.registerMotor(&Mot1);
+  
+  MandWs.registerInputPotentiometer(&inputpot1);
+    // A1 = Sel
+  MandWs.registerLimit(&lim1);
+}
+
 void setup()
 {
   //
   Serial.begin( 38400 );
   //SetupMiniSamsung();
   //SetupDFRobotMotorShield();
-  setupSimpleEncoderTest();
+  setupUNOStructureTest();
 
   MandWs.Start();
 }
@@ -152,20 +210,60 @@ MandWs.getMotor(0)->SetSpeed(mASpeed);
 //MandWs.getMotor(1)->SetSpeed(mBSpeed);
 }
 
+
+int curspeed = 0;
+int dirmodifspeed = 1;
+void loopbasicmotortest()
+{
+  // utilise motorctrl et driver seulement
+  // test set speed et update sensor
+
+  // update la vitesse
+  curspeed += dirmodifspeed;
+  if ( curspeed < 0 || curspeed > 128)
+  {
+    dirmodifspeed = -dirmodifspeed;
+  }
+  mot1Ctrl1.setPWM(curspeed);
+  
+  // update les info de senseurs
+  motDriver1.UpdateSensors();
+
+  // affiche les info des senseurs
+  Serial.print("power:");
+  Serial.println(mot1Power.getRaw());
+  Serial.print("mot err:");
+  Serial.println(mot1Ctrl1.inError());
+  Serial.print("speed:");
+  Serial.println(mot1Ctrl1.getRawSpeed());
+  Serial.print("inpot:");
+
+  inputpot1.update();
+  Serial.println(inputpot1.getRaw());
+  Serial.print("lim:");
+  Serial.println(lim1.update());
+  // attends 1 seconde
+  delay(1000);
+
+
+}
+
+
 int compt = 0;
 void loop()
 {
   //loopMotorTest();
   // devrait etre appeler au minimum au 1/10 de secondes
-  MandWs.Process();
-  compt += 1;
-  if ( compt == 10000 )
-  {
-    Serial.print(Enc1.getTicks());
-    Serial.print(",");
-    Serial.print(Enc2.getTicks());
-    Serial.print(",");
-    Serial.println(Enc3.getTicks());
-    compt = 0;
-  }
+  // MandWs.Process();
+  // compt += 1;
+  // if ( compt == 10000 )
+  // {
+  //   Serial.print(Enc1.getTicks());
+  //   Serial.print(",");
+  //   Serial.print(Enc2.getTicks());
+  //   Serial.print(",");
+  //   Serial.println(Enc3.getTicks());
+  //   compt = 0;
+  //  }
+  loopbasicmotortest();
 }

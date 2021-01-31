@@ -19,6 +19,8 @@ Test les éléments indépendamment d'un système inclusif. Gere la configuratio
 + BatterySensor
   + Support pour l'unité?
 
+Utilise une classe de base Analog pour la gestion des entré analogique. Optimise l'écriture et la lecture des digital pin sans passer par digitalRead et digitalWrite sur ATMEL.
+
 ## 0.0.3 Version Motor
 
 Permet le test de différent driver et moteurs

@@ -5,6 +5,7 @@
 
 // constante sur la taille des tableau
 #define MOTOR_DRIVER_COMPONENT_SIZE 4
+#define MAW_COMPONENT_SIZE 4
 
 // Fast digital read, en methode pour le moment, devrait être inline
 bool FastDigitalRead(volatile uint8_t* pinPort, uint8_t bitMask);
@@ -64,15 +65,17 @@ public:
   void setup(int apin );
   void setup(int apin, bool nopen );
 
+  bool update();
   bool Changed();
-  int getRaw();
+  bool getRaw();
   bool Closed();
   bool Open();
 
 protected:
   int Apin;
   bool normopen;
-  int lastVal;
+  bool lastVal;
+  bool curVal;
 
   // fastpin access
   void setupFastPin(int pin);
@@ -90,12 +93,14 @@ public:
   void setMinMax( int min, int max);
   void setMapping( int minmap, int maxmap);
 
+  void update();
   int getRaw();
   int getMaped();
   float getRange();
 protected:
   int Apin;
   int lastVal;
+  int curVal;
   int minval, maxval;
   int minMaping, maxMaping;
 };
@@ -171,18 +176,33 @@ public:
   MotorControl(int pwmPin, int directionPin);
   MotorControl(int pwmPin, int forwardPin, int reversePin);
 
+  void update();
+
+  // config
+  void setupPWMPin(int pwmPin);
+  void setupDirectionPin(int directionPin);
+  void setupDirectionPin(int forwardPin, int reversePin);
   void ConfigErrorPin( int pinError );
 
+  // write
   void setPWM( int value);
   void setPWM( int valA, int valB);
+
+  // query
+  bool inError();
+  int getRawSpeed();
 protected:
   int PWMPin1;
   int PWMPin2;
   int ForwardPin;
   int BackwardPin;
   int ErrorPin;
+
   bool SinglePinDirection;
   bool PWMSpeed;
+
+  int rawSpeed1;
+  int rawSpeed2;
 };
 
 
@@ -191,19 +211,27 @@ class MotorDriver
  public:
   MotorDriver();
   MotorDriver( int enablepin );
-  
-  void Enable( boolean enabled );
-  void setTemperatureSensor( TemperatureSensor* ts);
-  void setPowerSensor( PowerSensor* ps);
-  void setBaterySensor( BatterySensor* bs);
+  void setEnablePin( int pin );
+  void setPrecisionPin( int pin );
+
+  int addMotorControler(MotorControl* mctrl);
+  int addTemperatureSensor( TemperatureSensor* ts);
+  int addPowerSensor( PowerSensor* ps);
+  int addBaterySensor( BatterySensor* bs);
   void UpdateSensors();
 
+  // query
   bool hasPowerSensor();
   bool hasTemperatureSensor();
   bool hasBaterySensor();
-
   int getTotalPower();
+  int getAveragePower();
   int getAverageTemperature();
+
+  // action
+  void Enable( boolean enabled );
+  void setPrecision( int precision );
+  
 protected:
   int EnabledPin;
   int ErrorPin;
@@ -220,8 +248,6 @@ class Motor
 {
  public:
    Motor();
-   Motor( int pwm, int forward);
-   Motor( int pwm, int forward, int reverse );
    
   void Stop();
   void SetSpeed(int val, boolean forward);
@@ -230,18 +256,15 @@ class Motor
   void SetControler( MotorControl* mctrl );
   void SetPowerSensor( PowerSensor* psens );
   void SetTemperatureSensor( TemperatureSensor* tsens );
-  void SetBaterySensor( BatterySensor* tsens );
+  void SetBaterySensor( BatterySensor* bsens );
 
   void SetEncoder( Encoder* encoder );
-
-  // set controller
-  // set power
-  // set temp
-  // set battery
 
   bool hasPowerSensor();
   bool hasTemperatureSensor();
   bool hasDriver();
+
+  // ramp, min max accel,
 protected:
   bool PWMSpeed;
   MotorDriver* motorDriver;
@@ -325,12 +348,6 @@ public:
   void CheckInput();
   void CheckMessage();
   void Process();
-  
-  // void CreateDriver( int enablePin);
-  // void CreateEncoder( int pinA, int pinB );
-  // void CreateMotor(int pwmpin,int forwardpin,int barckwardpin);
-  // void CreateMotor(int pwmpin,int forwardpin);
-  // void CreateWheel( int ratio, Encoder* encoder, Motor* motor );
 
   int registerEncoder(Encoder* encoder);
   int registerLimit(Limit* limit);
@@ -365,11 +382,11 @@ protected:
 
   EncoderChange encChanges[8];
   // devra identifier les max support selon l'architecture
-  MotorDriver* _drivers[4];
-  Motor* _motors[4];
-  Wheel* _wheels[4];
-  Encoder* _encoders[4];
-  Potentiometer* inputPot[2];
+  MotorDriver* _drivers[MAW_COMPONENT_SIZE];
+  Motor* _motors[MAW_COMPONENT_SIZE];
+  Wheel* _wheels[MAW_COMPONENT_SIZE];
+  Encoder* _encoders[MAW_COMPONENT_SIZE];
+  Potentiometer* inputPot[MAW_COMPONENT_SIZE];
 
   // limit a testes
   Limit* _limits[4];

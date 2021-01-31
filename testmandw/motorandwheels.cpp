@@ -1,129 +1,10 @@
 // motorsandwheels
 #include "motorandwheels.h"
 
-// // -------- MotorDriver ---------
-// MotorDriver::MotorDriver()
-// {
-//   EnabledPin = 0;
-// }
-
-// MotorDriver::MotorDriver( int enablepin )
-// {
-//   EnabledPin = enablepin;
-//   // check if pin is available, if not set to 0
-  
-//   if ( EnabledPin != 0 )
-//   {
-//     pinMode( EnabledPin, OUTPUT );
-//   }
-// }
-
-// void MotorDriver::Enable( boolean enabled )
-// {
-//   if ( EnabledPin == 0 )
-//     return;
-    
-//   digitalWrite( EnabledPin, enabled == true ? HIGH : LOW );
-// }
-
-// // --------- Motor -----------
-
-// Motor::Motor()
-// {}
-
-
-
-// Motor::Motor( int pwm, int forward)
-// {
-//   PWMPin = pwm;
-//   ForwardPin = forward;
-//   BackwardPin = 0;
-//   motorDriver = 0;
-// pinMode( pwm, OUTPUT );
-// pinMode( forward, OUTPUT );
-// }
-
-// Motor::Motor( int pwm, int forward, int reverse )
-// {
-//   PWMPin = pwm;
-//   ForwardPin = forward;
-//   BackwardPin = reverse;
-//   motorDriver = 0;
-  
-// pinMode( pwm, OUTPUT );
-// pinMode( forward, OUTPUT );
-// pinMode( reverse, OUTPUT );
-// }
-
-// void Motor::Stop()
-// {
-//   // devrait verifier si possible de mettre forward et reverse a LOW
-//   analogWrite( 0, PWMPin );
-// }
-
-
-// void Motor::SetSpeed(int val, boolean forward)
-// {
-//   // if has motor driver, than call enable
-//   if ( motorDriver != 0 )
-//   {
-//     motorDriver->Enable(true);
-//   }
-// int fval = HIGH;
-// int rval = LOW;
-// if ( !forward )
-// {
-//   // forward pin HIGH
-//   fval = LOW;
-//   rval = HIGH;
-// }
-
-// digitalWrite( ForwardPin, fval );
-// if ( BackwardPin != 0 )
-//   {
-//   digitalWrite( ForwardPin, fval );
-//   }
-// // analogwrite pwm
-// analogWrite( val, PWMPin );
-// }
-
-// void Motor::SetSpeed(int val)
-// {
-//   if ( motorDriver != 0 )
-//   {
-//     motorDriver->Enable(true);
-//   }
-  
-// int fval = HIGH;
-// int rval = LOW;
-// int pwmspeed = val;
-// if ( val < 0 )
-//   {
-//   fval = LOW;
-//   rval = HIGH;
-//   pwmspeed = -val;
-//   }
-
-// digitalWrite( ForwardPin, fval );
-// if ( BackwardPin != 0 )
-//   {
-//   digitalWrite( ForwardPin, fval );
-//   }
-// analogWrite( pwmspeed, PWMPin );
-// }
-
-// void Motor::SetDriver( MotorDriver* driver )
-// {
-//   motorDriver = driver;
-// }
-
-
-
 //Rebati le code avec une gestion plus simpliste de memoire avec register
-
-bool FastDigitalRead(byte* pinPort, byte bitMask)
+bool FastDigitalRead(volatile uint8_t* pinPort, uint8_t bitMask)
 {
-  return (pinPort & bitMask) != 0;
+  return (*pinPort & bitMask) != 0;
 }
 
 // ---------- ENCODER --------------
@@ -243,6 +124,7 @@ void Limit::setup(int apin )
 {
   this->Apin = apin;
   pinMode(apin, INPUT );
+  this->setupFastPin(apin);
   this->normopen = true;
   this->lastVal = 0;
 }
@@ -250,25 +132,32 @@ void Limit::setup(int apin )
 void Limit::setup(int apin, bool nopen )
 {
   this->Apin = apin;
+  pinMode(apin, INPUT );
+  this->setupFastPin(apin);
   this->normopen = nopen;
   this->lastVal = 0;
+}
+
+bool Limit::update()
+{
+  this->lastVal = this->curVal;
+  this->curVal = FastDigitalRead(this->portPinIn, this->pinMask);
+  return this->curVal;
 }
 
 bool Limit::Changed()
 {
   bool ret = false;
-  bool cv = FastDigitalRead(this->portPinIn, this->pinMask);
-  if ( cv != this->lastVal)
+  if ( this->curVal != this->lastVal)
   {
     ret = true;
-    this->lastVal = cv;
   }
   return ret;
 }
 
-int Limit::getRaw()
+bool Limit::getRaw()
 {
-  return this->lastVal;
+  return this->curVal;
 }
 
 bool Limit::Closed()
@@ -291,16 +180,24 @@ void Limit::setupFastPin(int pin)
   this->portPinIn = portInputRegister(port);
 }
 
+
+// ------- AnalogInput
+
+void AnalogInput::update()
+{
+  this->lastVal = this->curVal;
+  this->curVal = analogRead(this->Apin);
+}
+
 // AnalogInput
 
 bool AnalogInput::Changed()
 {
-  int cv = analogRead(this->Apin);
-  if ( cv != this->lastVal)
+  if ( this->curVal != this->lastVal)
   {
-     this->lastVal = cv;
     return true;
   }
+  return false;
 }
 
 void AnalogInput::setPin( int pin)
@@ -323,17 +220,17 @@ void AnalogInput::setMapping( int minmap, int maxmap)
 
 int AnalogInput::getRaw()
 {
-  return this->lastVal;
+  return this->curVal;
 }
 
 int AnalogInput::getMaped()
 {
-  return map( this->lastVal, this->minval, this->maxval, this->minMaping, this->maxMaping );
+  return map( this->curVal, this->minval, this->maxval, this->minMaping, this->maxMaping );
 }
 
 float AnalogInput::getRange()
 {
-  return (float)(this->lastVal - this->minval) / (float)(this->maxval);
+  return (float)(this->curVal - this->minval) / (float)(this->maxval);
 }
 
 // ------------ Potentiometer ------------------
@@ -436,74 +333,293 @@ int BatterySensor::getVoltage()
   return 0;
 }
 
+// -------- MotorControl --------
+
+MotorControl::MotorControl()
+{
+  this->PWMPin1 = 0;
+  this->PWMPin2 = 0;
+  this->ForwardPin = 0;
+  this->BackwardPin = 0;
+  this->ErrorPin = 0;
+  this->SinglePinDirection = 0;
+  this->PWMSpeed = 0;
+}
+
+MotorControl::MotorControl(int pwmPin, int directionPin)
+{
+  this->PWMPin1 = pwmPin;
+  this->ForwardPin = directionPin;
+  this->BackwardPin = 0;
+}
+
+MotorControl::MotorControl(int pwmPin, int forwardPin, int reversePin)
+{
+  this->PWMPin1 = pwmPin;
+  this->ForwardPin = forwardPin;
+  this->BackwardPin = reversePin;
+}
+
+void MotorControl::setupPWMPin(int pwmPin)
+{
+  this->PWMPin1 = pwmPin;
+  pinMode( pwmPin, OUTPUT );
+}
+
+void MotorControl::setupDirectionPin(int directionPin)
+{
+  this->ForwardPin = directionPin;
+  pinMode( directionPin, OUTPUT );
+  this->BackwardPin = 0;
+}
+
+void MotorControl::setupDirectionPin(int forwardPin, int reversePin)
+{
+  this->ForwardPin = forwardPin;
+  this->BackwardPin = reversePin;
+  pinMode( forwardPin, OUTPUT );
+  pinMode( reversePin, OUTPUT );
+}
+
+void MotorControl::ConfigErrorPin( int pinError )
+{
+  this->ErrorPin = pinError;
+  pinMode( pinError, INPUT );
+}
 
 
+void MotorControl::update()
+{
+  // devrait lire la pin d'error et autre de status
+}
+
+
+void MotorControl::setPWM( int value)
+{
+  // hum, est-ce ici que les pin de direction change par defaut
+  this->rawSpeed1 = value;
+
+}
+
+void MotorControl::setPWM( int valA, int valB)
+{
+   // hum, est-ce ici que les pin de direction change par defaut
+  this->rawSpeed1 = valA;
+  this->rawSpeed2 = valB;
+}
+
+bool MotorControl::inError()
+{
+  // si error pin, read value
+  return false;
+}
+
+
+int MotorControl::getRawSpeed()
+{
+  return this->rawSpeed1;
+}
 
 // -------- MotorDriver ---------
 MotorDriver::MotorDriver()
 {
-  EnabledPin = 0;
-  powerSens = NULL;
-  tempSens = NULL;
+  this->EnabledPin = 0;
+  this->PrecisionPin = 0;
+  this->ErrorPin = 0;
+
+  // s'assure que les tableau sont a null?
 }
 
 MotorDriver::MotorDriver( int enablepin )
 {
-  EnabledPin = enablepin;
+  this->EnabledPin = enablepin;
   // check if pin is available, if not set to 0
   
-  if ( EnabledPin != 0 )
+  if ( enablepin != 0 )
   {
-    pinMode( EnabledPin, OUTPUT );
+    pinMode( enablepin, OUTPUT );
   }
+}
+
+void MotorDriver::setEnablePin( int pin )
+{
+  this->EnabledPin = pin;
+  pinMode( pin, OUTPUT );
+}
+
+void MotorDriver::setPrecisionPin( int pin )
+{
+  this->PrecisionPin = pin;
+  pinMode( pin, OUTPUT );
+}
+
+int MotorDriver::addMotorControler(MotorControl* mctrl)
+{
+  int i = 0;
+  for ( ; i < MOTOR_DRIVER_COMPONENT_SIZE; ++i)
+  {
+    if ( this->motCtrls[i] != NULL )
+    {
+       this->motCtrls[i] = mctrl;
+       break;
+    }
+  }
+  if ( i == MOTOR_DRIVER_COMPONENT_SIZE )
+  {
+    return -1;
+  }
+  return i;
+}
+
+int MotorDriver::addTemperatureSensor( TemperatureSensor* ts)
+{
+  int i = 0;
+  for ( ; i < MOTOR_DRIVER_COMPONENT_SIZE; ++i)
+  {
+    if ( this->tempSens[i] != NULL )
+    {
+       this->tempSens[i] = ts;
+       break;
+    }
+  }
+  if ( i == MOTOR_DRIVER_COMPONENT_SIZE )
+  {
+    return -1;
+  }
+  return i;
+}
+
+int MotorDriver::addPowerSensor( PowerSensor* ps)
+{
+  int i = 0;
+  for ( ; i < MOTOR_DRIVER_COMPONENT_SIZE; ++i)
+  {
+    if ( this->powerSens[i] != NULL )
+    {
+       this->powerSens[i] = ps;
+       break;
+    }
+  }
+  if ( i == MOTOR_DRIVER_COMPONENT_SIZE )
+  {
+    return -1;
+  }
+  return i;
+}
+
+int MotorDriver::addBaterySensor( BatterySensor* bs)
+{
+  int i = 0;
+  for ( ; i < MOTOR_DRIVER_COMPONENT_SIZE; ++i)
+  {
+    if ( this->baterySens[i] != NULL )
+    {
+       this->baterySens[i] = bs;
+       break;
+    }
+  }
+  if ( i == MOTOR_DRIVER_COMPONENT_SIZE )
+  {
+    return -1;
+  }
+  return i;
+}
+
+
+void MotorDriver::UpdateSensors()
+{
+  // pour chacun des tableau, passer les élément et fait le read
+  int i = 0;
+  for ( ; i < MOTOR_DRIVER_COMPONENT_SIZE; ++i)
+  {
+    if ( this->baterySens[i] == NULL )
+    {
+       break;
+    }
+    this->baterySens[i]->update();
+  } 
+
+  i = 0;
+  for ( ; i < MOTOR_DRIVER_COMPONENT_SIZE; ++i)
+  {
+    if ( this->powerSens[i] == NULL )
+    {
+       break;
+    }
+    this->powerSens[i]->update();
+  } 
+
+  i = 0;
+  for ( ; i < MOTOR_DRIVER_COMPONENT_SIZE; ++i)
+  {
+    if ( this->tempSens[i] == NULL )
+    {
+       break;
+    }
+    this->tempSens[i]->update();
+  } 
+
+  i = 0;
+  for ( ; i < MOTOR_DRIVER_COMPONENT_SIZE; ++i)
+  {
+    if ( this->motCtrls[i] == NULL )
+    {
+       break;
+    }
+    this->motCtrls[i]->update();
+  } 
+
+  // est-ce que les error pins sont ajouter sur intterupt. Serait mieux limit?
+}
+
+int MotorDriver::getTotalPower()
+{
+  // fait l'addition de la consommation de l'ensemble des power sensor
+}
+
+int MotorDriver::getAveragePower()
+{
+  // fait la moyenne de la consommation de l'ensemble des power sensor
+  return 0;
+}
+
+int MotorDriver::getAverageTemperature()
+{
+  // fait la moyenne de la temperature
+  return 0;
 }
 
 void MotorDriver::Enable( boolean enabled )
 {
-  if ( EnabledPin == 0 )
+  if ( this->EnabledPin == 0 )
     return;
     
   digitalWrite( EnabledPin, enabled == true ? HIGH : LOW );
 }
 
-void MotorDriver::setTemperatureSensor( TemperatureSensor* ts)
+
+
+void MotorDriver::setPrecision( int precision )
 {
-  this->tempSens = ts;
+  if ( this->PrecisionPin == 0 )
+    return;
+
+  // problement seulement 0 ou 1 pour le moment
 }
 
-void MotorDriver::setPowerSensor( PowerSensor* ps)
-{
-  this->powerSens = ps;
-}
-
-void MotorDriver::UpdateSensors()
-{
-  // si power != NULL
-
-  // si temp != NULL
-}
 
 
 // ------------ Motor --------------------------
 
 Motor::Motor()
 {
-
+  // tous les composant devrait être null
 }
 
-Motor::Motor( int pwm, int forward)
-{
-
-}
-
-Motor::Motor( int pwm, int forward, int reverse )
-{
-
-}
   
 void Motor::Stop()
 {
-
+  // set speed 0 sur mctrl
 }
 
 void Motor::SetSpeed(int val, boolean forward)
@@ -513,13 +629,42 @@ void Motor::SetSpeed(int val, boolean forward)
 
 void Motor::SetSpeed(int val)
 {
+  // map speed -> mctrl value
 
+  // call mctrl
 }
 
 void Motor::SetDriver( MotorDriver* driver )
 {
-
+  this->motorDriver = driver;
 }
+
+void Motor::SetControler( MotorControl* mctrl )
+{
+  this->motCtrl = mctrl;
+}
+
+void Motor::SetPowerSensor( PowerSensor* psens )
+{
+  this->powerSens = psens;
+}
+
+void Motor::SetTemperatureSensor( TemperatureSensor* tsens )
+{
+  this->tempSens = tsens;
+}
+
+void Motor::SetBaterySensor( BatterySensor* bsens )
+{
+  this->baterySens = bsens;
+}
+
+
+void Motor::SetEncoder( Encoder* encoder )
+{
+  this->_encoder = encoder;
+}
+
 
 // ------------ Wheel --------------------------
 
@@ -694,7 +839,7 @@ int MotorsAndWheels::registerLimit(Limit* limit)
   // Y a-t-il encore de la place
   if ( this->nbrLimits < 3 )
   {
-    this->)_limits[this->nbrLimits] = limit;
+    this->_limits[this->nbrLimits] = limit;
     ret = this->nbrLimits;
     this->nbrLimits += 1;
   }
@@ -717,7 +862,7 @@ int MotorsAndWheels::registerWheel(Wheel* wheel)
 }
 
   // input de control
-int registerInputPotentiometer(Potentiometer* potenriometer)
+int MotorsAndWheels::registerInputPotentiometer(Potentiometer* potenriometer)
 {
   return -1;
 }
@@ -730,7 +875,7 @@ int MotorsAndWheels::releaseEncoder(Encoder* encoder)
 int MotorsAndWheels::releaseLimit(Limit* limit)
 {
   return -1;
-}-
+}
 
 int MotorsAndWheels::releaseMotorDriver(MotorDriver* mdriver)
 {
